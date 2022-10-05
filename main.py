@@ -1,16 +1,39 @@
-# This is a sample Python script.
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
-# Press Umschalt+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+app.config['SQLALCHEMY_TRACK_MODIFCATIONS'] = False
+
+db = SQLAlchemy()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Strg+F8 to toggle the breakpoint.
+class Teammember(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
+    name = db.Column(db.String)
+    email = db.Column(db.String)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def connect_create_db(app):
+    db.init_app(app)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    with app.app_context():
+        db.create_all()
+
+    return db
+
+connect_create_db(app)
+
+with app.app_context():
+    me = Teammember(username='me', email='me@e.de')
+    db.session.add(me)
+    db.session.commit()
+
+    # User me suchen
+    user = Teammember.query.filter_by(username='me').first()
+    # User ändern
+    user.name = 'Mertens'
+    db.session.delete(user)
+    db.session.commit()
+
